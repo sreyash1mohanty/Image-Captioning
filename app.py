@@ -1,9 +1,10 @@
 import streamlit as st
 import numpy as np
-from keras.models import load_model, Model
-from keras.preprocessing import image
-from keras.applications.resnet50 import ResNet50, preprocess_input
-from keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.models import load_model, Model
+from tensorflow.keras.preprocessing import image, sequence
+from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
+import pickle
+import os
 import pickle
 import os
 
@@ -54,7 +55,7 @@ def predict_caption(photo, model, word_to_idx, idx_to_word, max_len):
     in_text = "startseq"
     for i in range(max_len):
         sequence = [word_to_idx[w] for w in in_text.split() if w in word_to_idx]
-        sequence = pad_sequences([sequence], maxlen=max_len, padding='post')
+        sequence = sequence.pad_sequences([sequence], maxlen=max_len, padding='post')
         ypred = model.predict([photo, sequence], verbose=0).argmax()
         word = idx_to_word[ypred]
         in_text += ' ' + word

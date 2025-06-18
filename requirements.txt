@@ -1,9 +1,10 @@
 streamlit==1.46.0
-tensorflow==2.16.1  # Use this if step 2 fails
+tensorflow>=2.15.0 
 numpy==1.26.1
 pillow
 opencv-python
 rich
+
 
 
 

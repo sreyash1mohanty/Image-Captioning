@@ -44,7 +44,7 @@ def load_captioning_model():
         if file_size < 1:  # Assuming model should be >1MB
             raise ValueError(f"Model file is too small ({file_size:.2f} MB), likely corrupted")
         
-        # Load model - important change for TF 2.16.1
+        # Load model
         return tf.keras.models.load_model(model_path)
     except Exception as e:
         st.error(f"❌ Failed to load model: {e}")
@@ -66,6 +66,9 @@ def load_feature_extractor():
 model_new = load_feature_extractor()
 
 def preprocess_img(img):
+    # Convert to RGB if image has alpha channel (4 channels)
+    if img.mode == 'RGBA':
+        img = img.convert('RGB')
     img = img.resize((224, 224))
     img = tf.keras.utils.img_to_array(img)
     img = np.expand_dims(img, axis=0)
@@ -75,7 +78,7 @@ def preprocess_img(img):
 def encode_img(uploaded_file, model_new):
     img = Image.open(uploaded_file)
     img = preprocess_img(img)
-    feature_vect = model_new.predict(img)
+    feature_vect = model_new.predict(img, verbose=0)
     return feature_vect.reshape((1, 2048))
 
 def predict_caption(photo, model, word_to_idx, idx_to_word, max_len):

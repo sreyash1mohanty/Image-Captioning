@@ -1,6 +1,6 @@
 streamlit==1.46.0
-tensorflow==2.16.1
-keras==3.3.3
+tensorflow==2.15.0
+keras==2.15.0
 numpy==1.26.1
 pillow
 opencv-python

@@ -2,7 +2,6 @@ FROM python:3.10
 
 WORKDIR /app
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libhdf5-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -12,18 +11,15 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# Create directory structure
 RUN mkdir -p model_weights saved
 
-# Copy application files
 COPY app.py .
 COPY model_weights/ model_weights/
 COPY saved/ saved/
 
-# Validate model file during build
 RUN echo "Validating model file..." && \
     if [ ! -f "model_weights/model_119.keras" ]; then \
-        echo "❌ Model file not found!" && exit 1; \
+        echo "Model file not found!" && exit 1; \
     fi && \
     file_size=$(du -h "model_weights/model_119.keras" | cut -f1) && \
     echo "Model file size: $file_size" && \

@@ -8,11 +8,8 @@ from PIL import Image
 import pickle
 import os
 import sys
-
-### Set Streamlit page config FIRST ###
 st.set_page_config(page_title="🖼️ Image Captioning", layout="centered")
 
-# Load resources with enhanced error handling
 @st.cache_resource
 def load_resources():
     try:
@@ -24,30 +21,27 @@ def load_resources():
             max_len = pickle.load(f)
         return word_to_idx, idx_to_word, max_len
     except Exception as e:
-        st.error(f"❌ Error loading resources: {e}")
+        st.error(f"Error loading resources: {e}")
         st.stop()
 
 word_to_idx, idx_to_word, max_len = load_resources()
 
-# Improved model loading with validation
 @st.cache_resource
 def load_captioning_model():
     model_path = 'model_weights/model_119.keras'
     try:
-        # File validation
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Model file not found at {model_path}")
         
-        file_size = os.path.getsize(model_path) / (1024 * 1024)  # in MB
+        file_size = os.path.getsize(model_path) / (1024 * 1024)
         st.sidebar.info(f"Model size: {file_size:.2f} MB")
         
-        if file_size < 1:  # Assuming model should be >1MB
+        if file_size < 1: 
             raise ValueError(f"Model file is too small ({file_size:.2f} MB), likely corrupted")
         
-        # Load model
         return tf.keras.models.load_model(model_path)
     except Exception as e:
-        st.error(f"❌ Failed to load model: {e}")
+        st.error(f"Failed to load model: {e}")
         st.error("Please check model file path and integrity")
         st.stop()
 
@@ -60,13 +54,12 @@ def load_feature_extractor():
         model_new = Model(model_new.input, model_new.layers[-2].output)
         return model_new
     except Exception as e:
-        st.error(f"❌ Error loading feature extractor: {e}")
+        st.error(f" Error loading feature extractor: {e}")
         st.stop()
 
 model_new = load_feature_extractor()
 
 def preprocess_img(img):
-    # Convert to RGB if image has alpha channel (4 channels)
     if img.mode == 'RGBA':
         img = img.convert('RGB')
     img = img.resize((224, 224))
@@ -84,14 +77,10 @@ def encode_img(uploaded_file, model_new):
 def predict_caption(photo, model, word_to_idx, idx_to_word, max_len):
     in_text = "startseq"
     for _ in range(max_len):
-        # Convert current text to sequence of indices
         sequence = [word_to_idx[w] for w in in_text.split() if w in word_to_idx]
-        # Pad the sequence to fixed length
         sequence = pad_sequences([sequence], maxlen=max_len, padding='post')
-        
-        # Predict next word
         ypred = model.predict([photo, sequence], verbose=0)
-        ypred = np.argmax(ypred)  # Get the index with highest probability
+        ypred = np.argmax(ypred)  
         
         word = idx_to_word.get(ypred, "")
         in_text += " " + word
@@ -99,8 +88,7 @@ def predict_caption(photo, model, word_to_idx, idx_to_word, max_len):
         if word == "endseq" or word == "":
             break
             
-    # Format final caption
-    caption = in_text.split()[1:-1]  # Remove startseq and endseq
+    caption = in_text.split()[1:-1] 
     return " ".join(caption).capitalize()
 
 ### ------------------ Streamlit App ------------------###
@@ -110,7 +98,6 @@ st.markdown("""
 Upload an image and let the model generate a caption using CNN + LSTM architecture.
 """)
 
-# Display TF version in sidebar
 st.sidebar.subheader("Environment Info")
 st.sidebar.text(f"TensorFlow Version: {tf.__version__}")
 st.sidebar.text(f"Python Version: {sys.version.split()[0]}")
@@ -128,8 +115,8 @@ if uploaded_file:
             caption = predict_caption(photo_2048, model, word_to_idx, idx_to_word, max_len)
             
             with col2:
-                st.success("✅ Caption Generated!")
+                st.success(" Caption Generated!")
                 st.markdown(f"**📝 Caption:** {caption}")
         except Exception as e:
-            st.error(f"❌ Error during caption generation: {e}")
+            st.error(f" Error during caption generation: {e}")
             st.exception(e)

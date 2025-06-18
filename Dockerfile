@@ -6,7 +6,13 @@ COPY requirements.txt .
 
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-COPY . .
+RUN mkdir -p model_weights saved
+
+COPY app.py .
+COPY model_weights/model_119.keras model_weights/model_119.keras
+COPY saved/word_to_idx.pkl saved/word_to_idx.pkl
+COPY saved/idx_to_word.pkl saved/idx_to_word.pkl
+COPY saved/max_len.pkl saved/max_len.pkl
 
 EXPOSE 8501
 

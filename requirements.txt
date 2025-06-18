@@ -1,12 +1,10 @@
-streamlit==1.26.0
+streamlit==1.22.0
 tensorflow==2.11.0
 keras==2.11.0
+protobuf==3.19.6
 numpy==1.24.3
 Pillow==9.5.0
-opencv-python
-
-
-
+opencv-python==4.7.0.72
 
 
 

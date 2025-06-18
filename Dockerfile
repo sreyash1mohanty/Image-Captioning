@@ -2,19 +2,33 @@ FROM python:3.10
 
 WORKDIR /app
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libhdf5-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
+# Create directory structure
 RUN mkdir -p model_weights saved
 
+# Copy application files
 COPY app.py .
 COPY model_weights/ model_weights/
-COPY saved/word_to_idx.pkl saved/word_to_idx.pkl
-COPY saved/idx_to_word.pkl saved/idx_to_word.pkl
-COPY saved/max_len.pkl saved/max_len.pkl
-RUN ls -lh model_weights/ saved/
-RUN file model_weights/model_119.keras
+COPY saved/ saved/
+
+# Validate model file during build
+RUN echo "Validating model file..." && \
+    if [ ! -f "model_weights/model_119.keras" ]; then \
+        echo "❌ Model file not found!" && exit 1; \
+    fi && \
+    file_size=$(du -h "model_weights/model_119.keras" | cut -f1) && \
+    echo "Model file size: $file_size" && \
+    python -c "import os; size=os.path.getsize('model_weights/model_119.keras'); exit(1) if size < 1000000 else print('✅ Model size OK')" || { echo "❌ Model file too small!"; exit 1; }
+
 EXPOSE 8501
 
 CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
